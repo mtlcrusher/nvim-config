@@ -1,0 +1,18 @@
+# Lazy.nvim
+lazy-lock.json
+lazy/
+
+# Swap files
+*.swp
+*.swo
+
+# Backup files
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Personal secrets (if any)
+.env
+
