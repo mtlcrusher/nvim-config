@@ -196,6 +196,29 @@ return {
 
     ins_left {
       function()
+        local diags = vim.diagnostic.get(0, {
+          lnum = vim.fn.line('.') - 1
+        })
+
+        if #diags > 0 then
+          local msg = diags[1].message
+
+          -- optional: trim long messages
+          if #msg > 60 then
+            msg = msg:sub(1, 60) .. "..."
+          end
+
+          return icons.diagnostics.Error .. " " .. msg
+        end
+
+        return ""
+      end,
+      color = { fg = colors.red },
+      cond = conditions.hide_in_width,
+    }
+
+    ins_left {
+      function()
         local c_preset = cmake.get_configure_preset()
         return "CMake: [" .. (c_preset and c_preset or "X") .. "]"
       end,
