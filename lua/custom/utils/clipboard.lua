@@ -23,7 +23,8 @@ end
 local function is_container()
   return vim.fn.filereadable("/.dockerenv") == 1
       or vim.fn.filereadable("/run/.containerenv") == 1
-      or vim.fn.system("cat /proc/1/cgroup 2>/dev/null"):find("docker") ~= nil
+      or vim.fn.system("cat /proc/1/cgroup 2>/dev/null"):lower():find("docker") ~= nil
+      or vim.fn.system("cat /proc/1/cgroup 2>/dev/null"):lower():find("podman") ~= nil
 end
 
 -- =========================
@@ -74,19 +75,28 @@ local function set_termux()
   }
 end
 
+local function executable(cmd)
+  return vim.fn.executable(cmd) == 1
+end
+
 local function set_wsl_container()
-  vim.g.clipboard = {
-    name = "wsl-container",
-    copy = {
-      ["+"] = "clip.exe",
-      ["*"] = "clip.exe",
-    },
-    paste = {
-      ["+"] = "powershell.exe -NoProfile -Command Get-Clipboard",
-      ["*"] = "powershell.exe -NoProfile -Command Get-Clipboard",
-    },
-    cache_enabled = 0,
-  }
+  if executable("clip.exe") then
+    vim.g.clipboard = {
+      name = "wsl-container-clip",
+      copy = {
+        ["+"] = "clip.exe",
+        ["*"] = "clip.exe",
+      },
+      paste = {
+        ["+"] = "powershell.exe -NoProfile -Command Get-Clipboard",
+        ["*"] = "powershell.exe -NoProfile -Command Get-Clipboard",
+      },
+      cache_enabled = 0,
+    }
+  else
+    -- fallback to OSC52 if Windows bridge not available
+    set_osc52()
+  end
 end
 
 local function set_wsl_native()
@@ -187,4 +197,3 @@ function M.setup()
 end
 
 return M
-
