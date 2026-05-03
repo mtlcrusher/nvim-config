@@ -21,4 +21,11 @@ M.base46 = {
 --      }
 -- }
 
+-- Force-disable global clipboard AFTER plugins
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    vim.opt.clipboard = ""
+  end,
+})
+
 return M

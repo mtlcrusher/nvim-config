@@ -1,6 +1,6 @@
 return {
   "civitasv/cmake-tools.nvim",
-  lazy = false,
+  -- lazy = false,
   dependencies = {
     "nvim-lua/plenary.nvim",
   },

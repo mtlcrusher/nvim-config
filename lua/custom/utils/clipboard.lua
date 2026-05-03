@@ -192,7 +192,7 @@ function M.setup()
     end
 
     -- universal behavior
-    vim.opt.clipboard = "unnamedplus"
+    -- vim.opt.clipboard = "unnamedplus"
   end)
 end
 
