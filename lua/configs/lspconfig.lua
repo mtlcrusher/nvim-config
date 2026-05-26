@@ -20,6 +20,7 @@ if vim.fn.executable("verible-verilog-ls") == 1 then
     cmd = {
       "verible-verilog-ls",
       "--rules_config_search", -- auto-pick .rules.verible_lint by searching upward
+      "--lsp_enable_hover", -- enable hover info (experimental in Verible)
       -- To force a different file list name:
       -- "--file_list_path", "verible.filelist",
     },
