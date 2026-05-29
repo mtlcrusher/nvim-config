@@ -1,9 +1,9 @@
 return {
   {
-    -- Pin to the legacy "master" branch for Neovim <=0.11 compatibility.
-    -- The "main" branch is an incompatible rewrite.
+    -- Neovim 0.12.x requires the rewritten nvim-treesitter on the main branch.
     "nvim-treesitter/nvim-treesitter",
-    branch = "master",
+    dependencies = { 'neovim-treesitter/treesitter-parser-registry' },
+    branch = "main",
     lazy = false,
     build = ":TSUpdate",
     opts = function(_, opts)
@@ -12,12 +12,20 @@ return {
       for _, v in ipairs(opts.ensure_installed) do
         have[v] = true
       end
-      if not have.verilog then
-        table.insert(opts.ensure_installed, "verilog")
+
+      -- On the new nvim-treesitter registry, SystemVerilog is provided as
+      -- "systemverilog" (query repo + parser target), not "verilog".
+      for _, lang in ipairs({ "systemverilog", "markdown", "markdown_inline", "html", "yaml" }) do
+        if not have[lang] then
+          table.insert(opts.ensure_installed, lang)
+        end
       end
 
-      -- Install missing parsers automatically when entering buffers.
       opts.auto_install = true
+
+      -- Reuse the systemverilog parser for both :set ft=systemverilog and :set ft=verilog.
+      -- This avoids warnings like: [nvim-treesitter] skipping unsupported language: verilog
+      vim.treesitter.language.register("systemverilog", { "systemverilog", "verilog" })
 
       return opts
     end,
