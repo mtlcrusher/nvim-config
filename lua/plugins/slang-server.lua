@@ -6,8 +6,17 @@ return {
     root_dir = vim.fn.getcwd(),
   },
   config = function(_, opts)
-    -- If Verible language server is available, prefer it to avoid running two LSPs.
+    -- IMPORTANT:
+    -- - svlangserver (IMC) and slang-server (Hudson/Slang) are different servers.
+    -- - Do NOT run both on the same buffer.
+    -- This plugin is only a last-resort fallback if neither svlangserver nor Verible LSP exists.
+    if vim.fn.executable("svlangserver") == 1 then
+      return
+    end
     if vim.fn.executable("verible-verilog-ls") == 1 then
+      return
+    end
+    if vim.fn.executable("slang-server") ~= 1 then
       return
     end
 

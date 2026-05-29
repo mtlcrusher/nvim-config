@@ -6,10 +6,8 @@ map("n", "<leader>yy", '"+yy', { desc = "Yank line to system clipboard" })
 map("n", "<leader>pp", '"+p', { desc = "Paste from system clipboard" })
 
 -- -------------------------
--- Verible helpers (only when tools exist)
+-- Verible helpers (existing)
 -- -------------------------
--- <leader>vf : format current buffer (uses conform)
--- <leader>vl : lint current file (uses nvim-lint)
 map("n", "<leader>vf", function()
   local ok, conform = pcall(require, "conform")
   if ok then
@@ -27,3 +25,22 @@ map("n", "<leader>vl", function()
     vim.notify("nvim-lint not available", vim.log.levels.WARN)
   end
 end, { desc = "Lint (Verible/nvim-lint)" })
+
+-- -------------------------
+-- SVLangserver helpers (new)
+-- -------------------------
+map("n", "<leader>vb", function()
+  if vim.fn.exists(":SvlangserverBuildIndex") == 2 then
+    vim.cmd("SvlangserverBuildIndex")
+  else
+    vim.notify("SvlangserverBuildIndex command not available", vim.log.levels.WARN)
+  end
+end, { desc = "SV: rebuild svlangserver index" })
+
+map("n", "<leader>vr", function()
+  if vim.fn.exists(":SvlangserverReportHierarchy") == 2 then
+    vim.cmd("SvlangserverReportHierarchy")
+  else
+    vim.notify("SvlangserverReportHierarchy command not available", vim.log.levels.WARN)
+  end
+end, { desc = "SV: report hierarchy under cursor" })
