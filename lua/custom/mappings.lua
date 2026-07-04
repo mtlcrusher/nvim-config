@@ -182,11 +182,14 @@ map("n", "<leader>ws", vim.lsp.buf.workspace_symbol, { desc = "SV: Workspace sym
 map("n", "<leader>ch", vim.lsp.buf.incoming_calls, { desc = "SV: Incoming calls" })
 map("n", "<leader>cH", vim.lsp.buf.outgoing_calls, { desc = "SV: Outgoing calls" })
 
--- Diagnostic navigation
-map("n", "[d", vim.diagnostic.goto_prev, { desc = "SV: Prev diagnostic" })
-map("n", "]d", vim.diagnostic.goto_next, { desc = "SV: Next diagnostic" })
-map("n", "<leader>e", vim.diagnostic.open_float, { desc = "SV: Show diagnostic" })
-map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "SV: Diagnostics to loclist" })
+-- Diagnostics
+map("n", "<leader>de", vim.diagnostic.open_float, { desc = "Show diagnostic" })
+map("n", "<leader>dq", vim.diagnostic.setloclist, { desc = "Diagnostics to loclist" })
+map("n", "[d", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })
+map("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+
+-- File tree
+map("n", "<leader>e", "<cmd>NvimTreeToggle<cr>", { desc = "Toggle file tree" })
 
 -- Snippets (LuaSnip) - expand with <Tab> in insert mode, jump with <C-j>/<C-k>
 -- Defined in luasnip config
