@@ -93,3 +93,100 @@ map("n", "<leader>rd", function()
     vim.notify("rustaceanvim not available", vim.log.levels.WARN)
   end
 end, { desc = "Rust: list debuggables" })
+
+-- -------------------------
+-- SystemVerilog helpers
+-- -------------------------
+-- LSP / svlangserver
+map("n", "<leader>sb", function()
+  if vim.fn.exists(":SvlangserverBuildIndex") == 2 then
+    vim.cmd("SvlangserverBuildIndex")
+  else
+    vim.notify("SvlangserverBuildIndex command not available", vim.log.levels.WARN)
+  end
+end, { desc = "SV: rebuild svlangserver index" })
+
+map("n", "<leader>sr", function()
+  if vim.fn.exists(":SvlangserverReportHierarchy") == 2 then
+    vim.cmd("SvlangserverReportHierarchy")
+  else
+    vim.notify("SvlangserverReportHierarchy command not available", vim.log.levels.WARN)
+  end
+end, { desc = "SV: report hierarchy under cursor" })
+
+map("n", "<leader>sf", function()
+  if vim.fn.exists(":SvlangserverFindModule") == 2 then
+    vim.cmd("SvlangserverFindModule")
+  else
+    vim.notify("SvlangserverFindModule command not available", vim.log.levels.WARN)
+  end
+end, { desc = "SV: find module by name" })
+
+map("n", "<leader>si", function()
+  if vim.fn.exists(":SvlangserverShowIndexStatus") == 2 then
+    vim.cmd("SvlangserverShowIndexStatus")
+  else
+    vim.notify("SvlangserverShowIndexStatus command not available", vim.log.levels.WARN)
+  end
+end, { desc = "SV: show index status" })
+
+-- Formatting / Linting (via conform / nvim-lint)
+map("n", "<leader>vf", function()
+  local ok, conform = pcall(require, "conform")
+  if ok then
+    conform.format({ async = false, lsp_fallback = true })
+  else
+    vim.notify("conform.nvim not available", vim.log.levels.WARN)
+  end
+end, { desc = "SV: Format (Verible/Conform)" })
+
+map("n", "<leader>vl", function()
+  local ok, lint = pcall(require, "lint")
+  if ok then
+    lint.try_lint()
+  else
+    vim.notify("nvim-lint not available", vim.log.levels.WARN)
+  end
+end, { desc = "SV: Lint (Verible/nvim-lint)" })
+
+-- Auto-inst (verilog-autoinst)
+map("n", "<leader>vi", "<cmd>AutoInst<cr>", { desc = "SV: Auto-inst module ports" })
+
+-- Simulation (iverilog / verilator)
+map("n", "<leader>vc", "<cmd>SVIverilogCompile<cr>", { desc = "SV: Compile with iverilog" })
+map("n", "<leader>vr", "<cmd>SVIverilogRun<cr>", { desc = "SV: Run iverilog simulation" })
+map("n", "<leader>vcr", "<cmd>SVIverilogCompileRun<cr>", { desc = "SV: Compile & run iverilog" })
+
+map("n", "<leader>vC", "<cmd>SVVerilatorBuild<cr>", { desc = "SV: Build with Verilator" })
+map("n", "<leader>vL", "<cmd>SVVerilatorLint<cr>", { desc = "SV: Lint with Verilator" })
+map("n", "<leader>vR", "<cmd>SVVerilatorRun<cr>", { desc = "SV: Run Verilator sim" })
+
+-- Waveform
+map("n", "<leader>vw", "<cmd>SVWaveform<cr>", { desc = "SV: Open waveform (GTKWave)" })
+
+-- Code navigation (LSP standard)
+map("n", "gd", vim.lsp.buf.definition, { desc = "SV: Go to definition" })
+map("n", "gr", vim.lsp.buf.references, { desc = "SV: Go to references" })
+map("n", "gi", vim.lsp.buf.implementation, { desc = "SV: Go to implementation" })
+map("n", "gy", vim.lsp.buf.type_definition, { desc = "SV: Go to type definition" })
+map("n", "<leader>rn", vim.lsp.buf.rename, { desc = "SV: Rename symbol" })
+map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "SV: Code action" })
+map("n", "K", vim.lsp.buf.hover, { desc = "SV: Hover documentation" })
+map("n", "<C-k>", vim.lsp.buf.signature_help, { desc = "SV: Signature help" })
+
+-- Document / Workspace symbols
+map("n", "<leader>ds", vim.lsp.buf.document_symbol, { desc = "SV: Document symbols" })
+map("n", "<leader>ws", vim.lsp.buf.workspace_symbol, { desc = "SV: Workspace symbols" })
+
+-- Call hierarchy (if supported)
+map("n", "<leader>ch", vim.lsp.buf.incoming_calls, { desc = "SV: Incoming calls" })
+map("n", "<leader>cH", vim.lsp.buf.outgoing_calls, { desc = "SV: Outgoing calls" })
+
+-- Diagnostic navigation
+map("n", "[d", vim.diagnostic.goto_prev, { desc = "SV: Prev diagnostic" })
+map("n", "]d", vim.diagnostic.goto_next, { desc = "SV: Next diagnostic" })
+map("n", "<leader>e", vim.diagnostic.open_float, { desc = "SV: Show diagnostic" })
+map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "SV: Diagnostics to loclist" })
+
+-- Snippets (LuaSnip) - expand with <Tab> in insert mode, jump with <C-j>/<C-k>
+-- Defined in luasnip config

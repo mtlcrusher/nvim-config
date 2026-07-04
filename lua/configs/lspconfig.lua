@@ -92,6 +92,14 @@ if has("svlangserver") then
         disableCompletionProvider = false,
         disableHoverProvider = false,
         disableSignatureHelpProvider = false,
+        -- Additional features
+        disableDefinitionProvider = false,
+        disableReferencesProvider = false,
+        disableDocumentSymbolProvider = false,
+        disableWorkspaceSymbolProvider = false,
+        disableCodeLensProvider = false,
+        disableFoldingRangeProvider = false,
+        disableSelectionRangeProvider = false,
       },
     },
   })
@@ -117,6 +125,28 @@ if has("svlangserver") then
       arguments = { vim.fn.expand("<cword>") },
     })
   end, { desc = "SVLangserver: report hierarchy for symbol under cursor" })
+
+  -- Additional svlangserver commands
+  create_once_user_command("SvlangserverFindModule", function()
+    local clients = vim.lsp.get_clients({ bufnr = 0, name = "svlangserver" })
+    if #clients == 0 then
+      vim.notify("svlangserver is not attached to the current buffer", vim.log.levels.WARN)
+      return
+    end
+    vim.lsp.buf.execute_command({
+      command = "systemverilog.find_module",
+      arguments = { vim.fn.expand("<cword>") },
+    })
+  end, { desc = "SVLangserver: find module by name" })
+
+  create_once_user_command("SvlangserverShowIndexStatus", function()
+    local clients = vim.lsp.get_clients({ bufnr = 0, name = "svlangserver" })
+    if #clients == 0 then
+      vim.notify("svlangserver is not attached to the current buffer", vim.log.levels.WARN)
+      return
+    end
+    vim.lsp.buf.execute_command({ command = "systemverilog.show_index_status" })
+  end, { desc = "SVLangserver: show index status" })
 
 -- -------------------------
 -- Fallback SV LSP: Verible
