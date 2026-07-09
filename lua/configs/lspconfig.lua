@@ -4,7 +4,7 @@ require("nvchad.configs.lspconfig").defaults()
 -- Keep your existing generic servers and add a single SV LSP provider.
 -- IMPORTANT: do not enable multiple SystemVerilog LSPs at the same time.
 
-local servers = { "html", "cssls", "pyright", "clangd", "neocmake" }
+local servers = { "html", "cssls", "pyright", "clangd", "neocmake", "rust_analyzer" }
 vim.lsp.enable(servers)
 
 local function has(bin)
@@ -48,7 +48,7 @@ if has("svlangserver") then
     disable_linting = false
   elseif use_iverilog then
     linter_name = "iverilog"
-    launch_configuration = "iverilog -g2012 -t null"
+    launch_configuration = "iverilog -g2012 -t null -I rtl"
     disable_linting = false
   else
     linter_name = "verilator"
@@ -162,6 +162,31 @@ elseif has("verible-verilog-ls") then
     root_markers = { "verible.filelist", ".rules.verible_lint", ".git" },
   })
   vim.lsp.enable("verible")
+end
+
+-- Configuration for Rust Analyzer
+if has("rust-analyzer") then
+  vim.lsp.config("rust_analyzer", {
+    cmd = { "rust-analyzer" },
+    filetypes = { "rust" },
+    settings = {
+      ["rust-analyzer"] = {
+        imports = {
+          granularity = {
+            group = "crate",
+          },
+          prefix = "self",
+        },
+        cargo = {
+          allFeatures = true,
+        },
+        procMacro = {
+          enable = true,
+        },
+      },
+    },
+  })
+  vim.lsp.enable("rust_analyzer")
 end
 
 -- read :h vim.lsp.config for changing options of lsp servers
