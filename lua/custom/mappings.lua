@@ -164,24 +164,6 @@ map("n", "<leader>vR", "<cmd>SVVerilatorRun<cr>", { desc = "SV: Run Verilator si
 -- Waveform
 map("n", "<leader>vw", "<cmd>SVWaveform<cr>", { desc = "SV: Open waveform (GTKWave)" })
 
--- Code navigation (LSP standard)
-map("n", "gd", vim.lsp.buf.definition, { desc = "SV: Go to definition" })
-map("n", "gr", vim.lsp.buf.references, { desc = "SV: Go to references" })
-map("n", "gi", vim.lsp.buf.implementation, { desc = "SV: Go to implementation" })
-map("n", "gy", vim.lsp.buf.type_definition, { desc = "SV: Go to type definition" })
-map("n", "<leader>rn", vim.lsp.buf.rename, { desc = "SV: Rename symbol" })
-map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "SV: Code action" })
-map("n", "K", vim.lsp.buf.hover, { desc = "SV: Hover documentation" })
-map("n", "<C-k>", vim.lsp.buf.signature_help, { desc = "SV: Signature help" })
-
--- Document / Workspace symbols
-map("n", "<leader>ds", vim.lsp.buf.document_symbol, { desc = "SV: Document symbols" })
-map("n", "<leader>ws", vim.lsp.buf.workspace_symbol, { desc = "SV: Workspace symbols" })
-
--- Call hierarchy (if supported)
-map("n", "<leader>ch", vim.lsp.buf.incoming_calls, { desc = "SV: Incoming calls" })
-map("n", "<leader>cH", vim.lsp.buf.outgoing_calls, { desc = "SV: Outgoing calls" })
-
 -- Diagnostics
 map("n", "<leader>de", vim.diagnostic.open_float, { desc = "Show diagnostic" })
 map("n", "<leader>dq", vim.diagnostic.setloclist, { desc = "Diagnostics to loclist" })
