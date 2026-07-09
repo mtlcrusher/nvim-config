@@ -147,6 +147,7 @@ if has("svlangserver") then
     end
     vim.lsp.buf.execute_command({ command = "systemverilog.show_index_status" })
   end, { desc = "SVLangserver: show index status" })
+end
 
 -- -------------------------
 -- Fallback SV LSP: Verible
@@ -162,31 +163,6 @@ elseif has("verible-verilog-ls") then
     root_markers = { "verible.filelist", ".rules.verible_lint", ".git" },
   })
   vim.lsp.enable("verible")
-end
-
--- Configuration for Rust Analyzer
-if has("rust-analyzer") then
-  vim.lsp.config("rust_analyzer", {
-    cmd = { "rust-analyzer" },
-    filetypes = { "rust" },
-    settings = {
-      ["rust-analyzer"] = {
-        imports = {
-          granularity = {
-            group = "crate",
-          },
-          prefix = "self",
-        },
-        cargo = {
-          allFeatures = true,
-        },
-        procMacro = {
-          enable = true,
-        },
-      },
-    },
-  })
-  vim.lsp.enable("rust_analyzer")
 end
 
 -- read :h vim.lsp.config for changing options of lsp servers
