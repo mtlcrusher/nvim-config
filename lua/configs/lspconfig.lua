@@ -4,9 +4,6 @@ require("nvchad.configs.lspconfig").defaults()
 -- Keep your existing generic servers and add a single SV LSP provider.
 -- IMPORTANT: do not enable multiple SystemVerilog LSPs at the same time.
 
-local servers = { "html", "cssls", "pyright", "clangd", "neocmake", "rust_analyzer" }
-vim.lsp.enable(servers)
-
 local function has(bin)
   return vim.fn.executable(bin) == 1
 end
@@ -24,6 +21,36 @@ local function create_once_user_command(name, rhs, opts)
   if vim.fn.exists(":" .. name) == 0 then
     vim.api.nvim_create_user_command(name, rhs, opts or {})
   end
+end
+
+-- Lua LSP configuration (config BEFORE enable)
+if has("lua-language-server") or has("lua_ls") then
+  vim.lsp.config("lua_ls", {
+    settings = {
+      Lua = {
+        runtime = { version = "LuaJIT" },
+        workspace = {
+          checkThirdParty = false,
+          library = vim.api.nvim_get_runtime_file("", true),
+        },
+        telemetry = { enable = false },
+        diagnostics = { globals = { "vim" } },
+      },
+    },
+  })
+end
+
+-- Rust LSP configuration (config BEFORE enable)
+if has("rust-analyzer") then
+  vim.lsp.config("rust_analyzer", {
+    settings = {
+      ["rust-analyzer"] = {
+        cargo = { allFeatures = true },
+        check = { command = "clippy" },
+        procMacro = { enable = true },
+      },
+    },
+  })
 end
 
 -- -------------------------
@@ -147,7 +174,6 @@ if has("svlangserver") then
     end
     vim.lsp.buf.execute_command({ command = "systemverilog.show_index_status" })
   end, { desc = "SVLangserver: show index status" })
-end
 
 -- -------------------------
 -- Fallback SV LSP: Verible
@@ -164,5 +190,9 @@ elseif has("verible-verilog-ls") then
   })
   vim.lsp.enable("verible")
 end
+
+-- All servers enabled together after config
+local servers = { "html", "cssls", "pyright", "clangd", "neocmake", "lua_ls", "rust_analyzer" }
+vim.lsp.enable(servers)
 
 -- read :h vim.lsp.config for changing options of lsp servers
