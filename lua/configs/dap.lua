@@ -211,21 +211,10 @@ function M.setup()
   dap.configurations.cpp = c_cfgs
 
   -- Rust ──────────────────────────────────────────────────────────────
-  -- rustaceanvim owns the primary Rust DAP config. This is a backstop
-  -- if rustaceanvim isn't loaded, using codelldb directly.
-  dap.configurations.rust = dap.configurations.rust or {}
-  if has "codelldb" and #dap.configurations.rust == 0 then
-    table.insert(dap.configurations.rust, {
-      type = "codelldb",
-      request = "launch",
-      name = "Rust: Launch (fallback; prefer :RustLsp debuggables)",
-      program = function() return vim.fn.input("Binary: ", vim.fn.getcwd() .. "/target/debug/", "file") end,
-      cwd = "${workspaceFolder}",
-      stopOnEntry = false,
-      runInTerminal = true,
-      console = "integratedTerminal",
-    })
-  end
+  -- rustaceanvim owns the Rust DAP adapter and configs entirely.
+  -- No fallback here — rustaceanvim injects its own configs when it loads.
+  -- If rustaceanvim is not loaded, the user can add configs manually or
+  -- install rustaceanvim.
 
   -- Highlight for stopped line
   vim.api.nvim_set_hl(0, "DapStoppedLine", { default = true, link = "Visual" })
