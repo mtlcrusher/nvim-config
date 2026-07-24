@@ -41,7 +41,12 @@ if has("lua-language-server") or has("lua_ls") then
 end
 
 -- Rust LSP configuration (config BEFORE enable)
-if has("rust-analyzer") then
+-- rustaceanvim takes over rust-analyzer setup when it's installed, so we
+-- only enable it here when rustaceanvim is unavailable. This prevents a
+-- double-attach race (both rust-analyzer via lspconfig AND via rustaceanvim).
+-- See the has_rustaceanvim() helper near the bottom of this file.
+local _rustaceanvim_present = vim.uv.fs_stat(vim.fn.stdpath "data" .. "/lazy/rustaceanvim") ~= nil
+if has("rust-analyzer") and not _rustaceanvim_present then
   vim.lsp.config("rust_analyzer", {
     settings = {
       ["rust-analyzer"] = {
@@ -192,7 +197,20 @@ elseif has("verible-verilog-ls") then
 end
 
 -- All servers enabled together after config
-local servers = { "html", "cssls", "pyright", "clangd", "neocmake", "lua_ls", "rust_analyzer" }
+-- rust_analyzer is enabled here only when rustaceanvim isn't loaded; when it
+-- is, rustaceanvim attaches rust-analyzer itself on FileType rust.
+local function has_rustaceanvim()
+  -- Lazy-loaded plugins can still be detected via the lazy spec state: if the
+  -- rustaceanvim plugin directory exists under lazy-nvim's packpath, treat it
+  -- as installed and let it own rust-analyzer.
+  local lazy_path = vim.fn.stdpath "data" .. "/lazy/rustaceanvim"
+  return vim.uv.fs_stat(lazy_path) ~= nil
+end
+
+local servers = { "html", "cssls", "pyright", "clangd", "neocmake", "lua_ls" }
+if not has_rustaceanvim() then
+  table.insert(servers, "rust_analyzer")
+end
 vim.lsp.enable(servers)
 
 -- read :h vim.lsp.config for changing options of lsp servers
