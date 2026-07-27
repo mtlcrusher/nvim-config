@@ -88,7 +88,10 @@ function M.setup()
   end
 
   -- gdb (fallback C/C++ adapter; user installs via apt/brew)
-  if has "gdb" then
+  -- On Termux/Android, GDB's DAP adapter crashes due to Python version mismatch
+  -- (GDB 16.3 built against Python 3.13, Termux has Python 3.14).
+  -- Use gdbserver + attach mode instead (see project .nvim-dap.lua configs).
+  if has "gdb" and not (vim.loop.os_uname().sysname == "Linux" and vim.fn.executable("termux-info") == 1) then
     dap.adapters.gdb = {
       type = "executable",
       command = "gdb",
@@ -193,19 +196,31 @@ function M.setup()
   end
 
   if has "gdb" then
-    table.insert(c_cfgs, {
-      type = "gdb",
-      request = "launch",
-      name = "C/C++: Launch (gdb)",
-      program = function() return vim.fn.input("Binary: ", vim.fn.expand "%:p:h" .. "/", "file") end,
-      cwd = "${workspaceFolder}",
-      stopOnEntry = false,
-      args = function()
-        local a = vim.fn.input "Args (space-separated): "
-        return a == "" and {} or vim.split(a, " ", { trimempty = true })
-      end,
-    })
-  end
+      table.insert(c_cfgs, {
+        type = "gdb",
+        request = "launch",
+        name = "C/C++: Launch (gdb)",
+        program = function() return vim.fn.input("Binary: ", vim.fn.expand "%:p:h" .. "/", "file") end,
+        cwd = "${workspaceFolder}",
+        stopOnEntry = false,
+        args = function()
+          local a = vim.fn.input "Args (space-separated): "
+          return a == "" and {} or vim.split(a, " ", { trimempty = true })
+        end,
+      })
+      -- gdbserver attach (works on Termux where gdb DAP crashes on launch)
+      table.insert(c_cfgs, {
+        type = "gdb",
+        request = "attach",
+        name = "C/C++: Attach to gdbserver (localhost:1234)",
+        program = function() return vim.fn.input("Binary (with symbols): ", vim.fn.expand "%:p:h" .. "/", "file") end,
+        cwd = "${workspaceFolder}",
+        connect = {
+          host = "127.0.0.1",
+          port = 1234,
+        },
+      })
+    end
 
   dap.configurations.c = c_cfgs
   dap.configurations.cpp = c_cfgs
@@ -218,6 +233,55 @@ function M.setup()
 
   -- Highlight for stopped line
   vim.api.nvim_set_hl(0, "DapStoppedLine", { default = true, link = "Visual" })
+
+  -- ──────────────────────────────────────────────────────────────────
+  -- Load project-local DAP config (.nvim-dap.lua) if present
+  -- ──────────────────────────────────────────────────────────────────
+  local function load_project_dap()
+    local cwd = vim.fn.getcwd()
+    local config_path = cwd .. "/.nvim-dap.lua"
+    if vim.fn.filereadable(config_path) == 1 then
+      local ok, project_dap = pcall(dofile, config_path)
+      if ok and project_dap.configurations then
+        -- Replace configurations for each language
+        for lang, cfgs in pairs(project_dap.configurations) do
+          dap.configurations[lang] = cfgs
+        end
+        vim.notify("Loaded project DAP config: " .. config_path, vim.log.levels.INFO)
+        if project_dap.gdbserver_cmd then
+          vim.g.project_gdbserver_cmd = project_dap.gdbserver_cmd
+        end
+      end
+    end
+  end
+  
+  -- Auto-load on VimEnter (after global config is set)
+  vim.api.nvim_create_autocmd("VimEnter", {
+    callback = function()
+      vim.defer_fn(load_project_dap, 100)
+    end,
+    once = true,
+  })
+  
+  -- Reload on directory change
+  vim.api.nvim_create_autocmd("DirChanged", {
+    pattern = "*",
+    callback = function()
+      vim.defer_fn(load_project_dap, 100)
+    end,
+  })
+  
+  -- Manual reload command
+  vim.api.nvim_create_user_command("DapLoadProject", load_project_dap, { desc = "Load project .nvim-dap.lua" })
+  
+  -- Show gdbserver command
+  vim.api.nvim_create_user_command("DapGdbserverCmd", function()
+    if vim.g.project_gdbserver_cmd then
+      print(vim.g.project_gdbserver_cmd)
+    else
+      print("No project gdbserver command")
+    end
+  end, { desc = "Show project gdbserver command" })
 end
 
 return M
