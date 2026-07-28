@@ -242,14 +242,24 @@ function M.setup()
     local config_path = cwd .. "/.nvim-dap.lua"
     if vim.fn.filereadable(config_path) == 1 then
       local ok, project_dap = pcall(dofile, config_path)
-      if ok and project_dap.configurations then
-        -- Replace configurations for each language
-        for lang, cfgs in pairs(project_dap.configurations) do
-          dap.configurations[lang] = cfgs
+      if ok then
+        -- Load project adapters first (so configs can reference them)
+        if project_dap.adapters then
+          for adapter_name, adapter_config in pairs(project_dap.adapters) do
+            dap.adapters[adapter_name] = adapter_config
+          end
+          vim.notify("Loaded project DAP adapters: " .. vim.inspect(vim.tbl_keys(project_dap.adapters)), vim.log.levels.INFO)
         end
-        vim.notify("Loaded project DAP config: " .. config_path, vim.log.levels.INFO)
-        if project_dap.gdbserver_cmd then
-          vim.g.project_gdbserver_cmd = project_dap.gdbserver_cmd
+        
+        -- Replace configurations for each language
+        if project_dap.configurations then
+          for lang, cfgs in pairs(project_dap.configurations) do
+            dap.configurations[lang] = cfgs
+          end
+          vim.notify("Loaded project DAP config: " .. config_path, vim.log.levels.INFO)
+          if project_dap.gdbserver_cmd then
+            vim.g.project_gdbserver_cmd = project_dap.gdbserver_cmd
+          end
         end
       end
     end
