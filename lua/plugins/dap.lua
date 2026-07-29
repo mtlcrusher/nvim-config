@@ -5,8 +5,9 @@
 --   * nvim-dap-ui        the UI overlay (scopes/variables/watches/repl/stacks)
 --   * nvim-dap-virtual-text inline variable-value virtual text at stopped lines
 --
--- Adapter installation (debugpy, codelldb, gdb) is handled by mason-nvim-dap
+-- Adapter installation (debugpy, gdb) is handled by mason-nvim-dap
 -- in plugins/mason.lua — this keeps that concern in one place.
+-- codelldb removed: glibc binary, doesn't run on Termux bionic libc
 return {
   {
     "mfussenegger/nvim-dap",

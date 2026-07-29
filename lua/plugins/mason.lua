@@ -5,9 +5,9 @@
 --
 -- DAP adapter list:
 --   python   -> debugpy    (Python)
---   codelldb -> lldb-based DAP, used for C/C++ AND Rust
 --   gdb      -> multiarch-enabled gdb with --interpreter=dap, used for
 --               remote-attach to cross-compiled RISC-V/ARM firmware images
+--   codelldb -> lldb-based DAP for C/C++/Rust (SKIPPED on Termux: glibc binary on bionic libc)
 return {
   {
     "williamboman/mason.nvim",
@@ -37,7 +37,7 @@ return {
           -- DAP adapters live in mason-nvim-dap's ensure_installed below;
           -- we keep them out of mason-tool-installer to avoid duplicates.
           -- Add tooling like linters/formatters here as needed:
-          -- "ruff", "clang-format", "codelldb",
+          -- "ruff", "clang-format",
         },
         auto_update = false,
         run_on_start = true,
@@ -61,8 +61,8 @@ return {
         -- `ensure_installed` here installs DAP adapter packages AND triggers
         -- the auto-config handlers below (unless `handlers = {}`).
         ensure_installed = {
-          "python",   -- debugpy
-          "codelldb", -- lldb-based, C/C++ and Rust
+          "python", -- debugpy (works on Termux)
+          -- "codelldb" removed: glibc binary, doesn't run on Termux bionic libc
         },
         -- Skip mason-nvim-dap's own auto-config for codelldb: our configs/dap.lua
         -- defines a more robust codelldb executable resolver (Mason path with
@@ -86,7 +86,7 @@ return {
           end,
 
           -- Skip mason-nvim-dap's codelldb registration; ours is more complete.
-          codelldb = function() end,
+                  -- codelldb = function() end,
         },
         automatic_installation = true,
       }
