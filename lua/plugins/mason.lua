@@ -62,7 +62,7 @@ return {
         -- the auto-config handlers below (unless `handlers = {}`).
         ensure_installed = {
           "python",   -- debugpy
-          "codelldb", -- lldb-based, C/C++ and Rust
+          -- "codelldb" -- lldb-based, C/C++ and Rust (installed manually at ~/.local/share/codelldb/)
         },
         -- Skip mason-nvim-dap's own auto-config for codelldb: our configs/dap.lua
         -- defines a more robust codelldb executable resolver (Mason path with
