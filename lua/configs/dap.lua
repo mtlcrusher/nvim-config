@@ -75,7 +75,8 @@ function M.setup()
   -- ──────────────────────────────────────────────────────────────────
 
   -- codelldb (preferred C/C++/Rust adapter) — installed to ~/.local/bin or PATH
-  if has "codelldb" then
+  -- SKIPPED on Termux: codelldb is a glibc binary and crashes on bionic libc
+  if has "codelldb" and vim.fn.executable("termux-info") ~= 1 then
     dap.adapters.codelldb = {
       type = "server",
       port = "${port}",
@@ -154,10 +155,10 @@ function M.setup()
 
   -- C / C++ ───────────────────────────────────────────────────────────
   -- Three adapter choices if present: codelldb (preferred), gdb (fallback)
-  -- Each gets a "launch binary" and (for codelldb) a "remote attach" config.
+  -- codelldb SKIPPED on Termux (glibc binary on bionic libc)
   local c_cfgs = {}
 
-  if has "codelldb" then
+  if has "codelldb" and vim.fn.executable("termux-info") ~= 1 then
     -- Launch native binary under codelldb
     table.insert(c_cfgs, {
       type = "codelldb",

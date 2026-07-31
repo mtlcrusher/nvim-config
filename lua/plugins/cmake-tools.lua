@@ -41,7 +41,7 @@ return {
       },
       cmake_dap_configuration = { -- debug settings for cmake
         name = "cpp",
-        type = "codelldb",
+        type = vim.fn.executable("termux-info") == 1 and "gdb" or "codelldb",
         request = "launch",
         stopOnEntry = false,
         runInTerminal = true,

@@ -19,7 +19,8 @@ return {
         dap = {
           -- Provide a full nvim-dap adapter spec (server type for codelldb).
           -- This mirrors what configs/dap.lua registers for codelldb.
-          adapter = {
+          -- SKIPPED on Termux: codelldb is a glibc binary, crashes on bionic libc
+          adapter = vim.fn.executable("termux-info") ~= 1 and {
             type = "server",
             port = "${port}",
             executable = {
@@ -28,7 +29,7 @@ return {
               args = { "--port", "${port}" },
               detached = false,
             },
-          },
+          } or nil,
         },
         tools = {
           hover_actions = { auto_focus = true },
