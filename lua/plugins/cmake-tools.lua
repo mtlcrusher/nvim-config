@@ -41,6 +41,9 @@ return {
       },
       cmake_dap_configuration = { -- debug settings for cmake
         name = "cpp",
+        -- Termux: gdb is the only option (no codelldb on bionic libc), but
+        -- stock Termux gdb cannot spawn (broken package, see configs/dap.lua),
+        -- so :CMakeDebug needs a working gdb build there.
         type = vim.fn.executable("termux-info") == 1 and "gdb" or "codelldb",
         request = "launch",
         stopOnEntry = false,

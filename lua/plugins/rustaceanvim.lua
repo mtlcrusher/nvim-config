@@ -15,12 +15,16 @@ return {
     lazy = false, -- needed so rust-analyzer attaches on FileType rust
     init = function()
       -- rustaceanvim reads these from vim.g before nvim loads; set them here.
+      -- On Termux there is no working adapter (codelldb is glibc; stock gdb
+      -- is broken), so DAP is officially disabled; debug Rust via gdbserver
+      -- + attach mode in project .nvim-dap.lua instead (recommended).
+      -- NOTE: `false` is rustaceanvim.disable. `nil` would keep the default
+      -- codelldb auto-detect, which spawns a crashing binary on Termux.
+      local is_termux = vim.fn.executable("termux-info") == 1
       vim.g.rustaceanvim = {
         dap = {
           -- Provide a full nvim-dap adapter spec (server type for codelldb).
-          -- This mirrors what configs/dap.lua registers for codelldb.
-          -- SKIPPED on Termux: codelldb is a glibc binary, crashes on bionic libc
-          adapter = vim.fn.executable("termux-info") ~= 1 and {
+          adapter = not is_termux and {
             type = "server",
             port = "${port}",
             executable = {
@@ -29,7 +33,7 @@ return {
               args = { "--port", "${port}" },
               detached = false,
             },
-          } or nil,
+          } or false,
         },
         tools = {
           hover_actions = { auto_focus = true },

@@ -1,6 +1,7 @@
 -- configs/dap.lua
 -- Central nvim-dap configuration: adapters + per-language launch configs.
--- Languages: Python (debugpy), C/C++ (codelldb, gdb), Rust (rustaceanvim → codelldb).
+-- Languages: Python (debugpy), C/C++ (codelldb, gdb), Rust (rustaceanvim;
+-- on Termux rustaceanvim DAP is disabled, use project-local gdbserver attach).
 -- Adapter discovery via `has()` (system binaries), matching configs/lspconfig.lua style.
 -- No Mason. No hardcoded paths beyond `has()` fallbacks.
 
@@ -88,11 +89,12 @@ function M.setup()
     }
   end
 
-  -- gdb (fallback C/C++ adapter; user installs via apt/brew)
-  -- On Termux/Android, GDB's DAP adapter crashes due to Python version mismatch
-  -- (GDB 16.3 built against Python 3.13, Termux has Python 3.14).
-  -- Use gdbserver + attach mode instead (see project .nvim-dap.lua configs).
-  if has "gdb" and not (vim.loop.os_uname().sysname == "Linux" and vim.fn.executable("termux-info") == 1) then
+  -- gdb (fallback C/C++/Rust adapter; user installs via apt/brew/pacman)
+  -- Registered on Termux too so attach mode (gdbserver) can work with a
+  -- working gdb build. NOTE: stock Termux gdb currently cannot even start
+  -- (linker error: missing libc++ symbol), so both launch and attach fail
+  -- until that package is fixed -- then use project .nvim-dap.lua configs.
+  if has "gdb" then
     dap.adapters.gdb = {
       type = "executable",
       command = "gdb",
@@ -197,6 +199,8 @@ function M.setup()
   end
 
   if has "gdb" then
+    -- Launch only off Termux: Termux gdb cannot spawn (broken package).
+    if vim.fn.executable("termux-info") ~= 1 then
       table.insert(c_cfgs, {
         type = "gdb",
         request = "launch",
@@ -209,19 +213,20 @@ function M.setup()
           return a == "" and {} or vim.split(a, " ", { trimempty = true })
         end,
       })
-      -- gdbserver attach (works on Termux where gdb DAP crashes on launch)
-      table.insert(c_cfgs, {
-        type = "gdb",
-        request = "attach",
-        name = "C/C++: Attach to gdbserver (localhost:1234)",
-        program = function() return vim.fn.input("Binary (with symbols): ", vim.fn.expand "%:p:h" .. "/", "file") end,
-        cwd = "${workspaceFolder}",
-        connect = {
-          host = "127.0.0.1",
-          port = 1234,
-        },
-      })
     end
+    -- gdbserver attach (the only path on Termux; needs a working gdb build)
+    table.insert(c_cfgs, {
+      type = "gdb",
+      request = "attach",
+      name = "C/C++: Attach to gdbserver (localhost:1234)",
+      program = function() return vim.fn.input("Binary (with symbols): ", vim.fn.expand "%:p:h" .. "/", "file") end,
+      cwd = "${workspaceFolder}",
+      connect = {
+        host = "127.0.0.1",
+        port = 1234,
+      },
+    })
+  end
 
   dap.configurations.c = c_cfgs
   dap.configurations.cpp = c_cfgs
@@ -231,68 +236,31 @@ function M.setup()
   -- No fallback here — rustaceanvim injects its own configs when it loads.
   -- If rustaceanvim is not loaded, the user can add configs manually or
   -- install rustaceanvim.
+  --
+  -- On Termux: rustaceanvim DAP is disabled (see plugins/rustaceanvim.lua).
+  -- Stock Termux gdb cannot spawn (broken package), so use gdbserver + attach
+  -- mode via project .nvim-dap.lua once a working gdb build is available.
+  -- Example project .nvim-dap.lua for Rust:
+  --   return {
+  --     configurations = {
+  --       rust = {{
+  --         type = "gdb",
+  --         request = "attach",
+  --         name = "Rust: Attach to gdbserver (localhost:1234)",
+  --         program = function() return vim.fn.input("Binary (with symbols): ", vim.fn.expand("%:p:h") .. "/", "file") end,
+  --         cwd = "${workspaceFolder}",
+  --         connect = { host = "127.0.0.1", port = 1234 },
+  --       }}
+  --     },
+  --     gdbserver_cmd = "gdbserver :1234 target/debug/your_binary"
+  --   }
 
   -- Highlight for stopped line
   vim.api.nvim_set_hl(0, "DapStoppedLine", { default = true, link = "Visual" })
 
-  -- ──────────────────────────────────────────────────────────────────
-  -- Load project-local DAP config (.nvim-dap.lua) if present
-  -- ──────────────────────────────────────────────────────────────────
-  local function load_project_dap()
-    local cwd = vim.fn.getcwd()
-    local config_path = cwd .. "/.nvim-dap.lua"
-    if vim.fn.filereadable(config_path) == 1 then
-      local ok, project_dap = pcall(dofile, config_path)
-      if ok then
-        -- Load project adapters first (so configs can reference them)
-        if project_dap.adapters then
-          for adapter_name, adapter_config in pairs(project_dap.adapters) do
-            dap.adapters[adapter_name] = adapter_config
-          end
-          vim.notify("Loaded project DAP adapters: " .. vim.inspect(vim.tbl_keys(project_dap.adapters)), vim.log.levels.INFO)
-        end
-        
-        -- Replace configurations for each language
-        if project_dap.configurations then
-          for lang, cfgs in pairs(project_dap.configurations) do
-            dap.configurations[lang] = cfgs
-          end
-          vim.notify("Loaded project DAP config: " .. config_path, vim.log.levels.INFO)
-          if project_dap.gdbserver_cmd then
-            vim.g.project_gdbserver_cmd = project_dap.gdbserver_cmd
-          end
-        end
-      end
-    end
-  end
-  
-  -- Auto-load on VimEnter (after global config is set)
-  vim.api.nvim_create_autocmd("VimEnter", {
-    callback = function()
-      vim.defer_fn(load_project_dap, 100)
-    end,
-    once = true,
-  })
-  
-  -- Reload on directory change
-  vim.api.nvim_create_autocmd("DirChanged", {
-    pattern = "*",
-    callback = function()
-      vim.defer_fn(load_project_dap, 100)
-    end,
-  })
-  
-  -- Manual reload command
-  vim.api.nvim_create_user_command("DapLoadProject", load_project_dap, { desc = "Load project .nvim-dap.lua" })
-  
-  -- Show gdbserver command
-  vim.api.nvim_create_user_command("DapGdbserverCmd", function()
-    if vim.g.project_gdbserver_cmd then
-      print(vim.g.project_gdbserver_cmd)
-    else
-      print("No project gdbserver command")
-    end
-  end, { desc = "Show project gdbserver command" })
+  -- Project-local .nvim-dap.lua loading (adapters, configs, <leader>dg,
+  -- <leader>dd, :DapLoadProject) lives in configs/dap_project.lua, wired up
+  -- from plugins/dap.lua. Kept there as the single source of truth.
 end
 
 return M

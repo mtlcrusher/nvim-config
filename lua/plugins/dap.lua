@@ -42,7 +42,7 @@ return {
       { "theHamsta/nvim-dap-virtual-text" },
     },
     config = function()
-      require "configs.dap"
+      require("configs.dap").setup()
       -- Load project-local DAP config (.nvim-dap.lua) including adapters
       require("configs.dap_project").load_project_dap()
       require("configs.dap_project").setup_autoload()
